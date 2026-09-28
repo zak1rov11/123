@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 Market — Магазин скинов CS2</title>
+    <style>
+        :root {
+            --bg-main: #1b2838;
+            --bg-secondary: #171a21;
+            --bg-card: #0e141d;
+            --accent-blue: #66c0f4;
+            --btn-green: #5c7e10;
+            --btn-green-hover: #7ea617;
+            --text-main: #c6d4df;
+            --text-bright: #ffffff;
+            --border-color: #2a475e;
+            
+            /* Rarity Colors */
+            --rarity-covert: #eb4b4b;
+            --rarity-classified: #d32ce6;
+            --rarity-restricted: #8847ff;
+            --rarity-milspec: #4b69ff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Motiva Sans", Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* HEADER */
+        header {
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--text-bright);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+        }
+
+        .logo span {
+            color: var(--accent-blue);
+        }
+
+        nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-link {
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            padding: 5px 10px;
+            border-radius: 3px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--text-bright);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .user-panel {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 6px 14px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .balance-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .balance-amount {
+            color: #a4d007;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .btn-deposit {
+            background: linear-gradient(to bottom, #799905 5%, #536904 95%);
+            color: var(--text-bright);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .btn-deposit:hover {
+            background: linear-gradient(to bottom, #8ed100 5%, #6a8c00 95%);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 3px;
+            border: 1px solid var(--accent-blue);
+        }
+
+        /* MAIN CONTAINER */
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+            flex-grow: 1;
+            width: 100%;
+        }
+
+        /* FILTERS BAR */
+        .filters-bar {
+            background-color: var(--bg-card);
+            padding: 15px 20px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .search-input, .select-filter {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-bright);
+            padding: 8px 12px;
+            border-radius: 3px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .search-input {
+            flex-grow: 1;
+            min-width: 200px;
+        }
+
+        .search-input:focus, .select-filter:focus {
+            border-color: var(--accent-blue);
+        }
+
+        /* SKINS GRID */
+        .skins-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .skin-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .skin-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            border-color: var(--accent-blue);
+        }
+
+        .skin-rarity-bar {
+            height: 4px;
+            width: 100%;
+        }
+
+        .skin-img-wrap {
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            background: radial-gradient(circle, rgba(42,71,94,0.3) 0%, rgba(14,20,29,0.8) 100%);
+        }
+
+        .skin-img-wrap img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.5));
+        }
+
+        .skin-info {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .skin-weapon {
+            font-size: 12px;
+            color: #8f98a0;
+            text-transform: uppercase;
+        }
+
+        .skin-name {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--text-bright);
+            margin: 2px 0 6px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .skin-wear {
+            font-size: 11px;
+            color: var(--accent-blue);
+            margin-bottom: 15px;
+            display: inline-block;
+            background: rgba(102, 192, 244, 0.1);
+            padding: 2px 6px;
+            border-radius: 2px;
+            width: fit-content;
+        }
+
+        .skin-bottom {
+            margin-top: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .skin-price {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-bright);
+        }
+
+        .btn-buy {
+            background-color: var(--btn-green);
+            color: var(--text-bright);
+            border: none;
+            padding: 8px 14px;
+            border-radius: 2px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-buy:hover {
+            background-color: var(--btn-green-hover);
+        }
+
+        /* PROFILE SECTION */
+        .profile-section {
+            display: none;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 25px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 25px;
+        }
+
+        .profile-avatar-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 4px;
+            border: 2px solid var(--accent-blue);
+        }
+
+        .profile-details h2 {
+            color: var(--text-bright);
+            margin-bottom: 5px;
+        }
+
+        .trade-url-box {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            max-width: 500px;
+        }
+
+        .inventory-title {
+            color: var(--text-bright);
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            width: 400px;
+            padding: 25px;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .modal-title {
+            color: var(--text-bright);
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: var(--text-main);
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .payment-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-bright);
+            padding: 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .payment-btn.selected {
+            border-color: var(--accent-blue);
+            background: rgba(102, 192, 244, 0.1);
+        }
+
+        /* NOTIFICATION */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--btn-green);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 3px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            display: none;
+            z-index: 2000;
+        }
+
+        /* FOOTER */
+        footer {
+            background-color: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #626366;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <div class="logo" onclick="switchTab('market')">
+            <span>CS2</span> MARKET
+        </div>
+        <nav>
+            <a class="nav-link active" id="nav-market" onclick="switchTab('market')">Маркет</a>
+            <a class="nav-link" id="nav-profile" onclick="switchTab('profile')">Мой профиль</a>
+        </nav>
+        <div class="user-panel">
+            <div class="balance-box">
+                <span>Баланс:</span>
+                <span class="balance-amount" id="user-balance">15 000 ₽</span>
+            </div>
+            <button class="btn-deposit" onclick="openDepositModal()">+</button>
+            <img src="https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg" alt="Avatar" class="user-avatar">
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <div class="container">
+        
+        <!-- MARKET TAB -->
+        <div id="market-tab">
+            <div class="filters-bar">
+                <input type="text" class="search-input" id="search-input" placeholder="Поиск скина..." oninput="filterSkins()">
+                <select class="select-filter" id="rarity-filter" onchange="filterSkins()">
+                    <option value="all">Все редкости</option>
+                    <option value="covert">Тайное</option>
+                    <option value="classified">Засекреченное</option>
+                    <option value="restricted">Запрещенное</option>
+                </select>
+                <select class="select-filter" id="sort-filter" onchange="filterSkins()">
+                    <option value="default">Сначала популярные</option>
+                    <option value="asc">Сначала дешевле</option>
+                    <option value="desc">Сначала дороже</option>
+                </select>
+            </div>
+
+            <div class="skins-grid" id="skins-container">
+                <!-- Карточки скинов генерируются через JS -->
+            </div>
+        </div>
+
+        <!-- PROFILE TAB -->
+        <div id="profile-tab" class="profile-section">
+            <div class="profile-header">
+                <img src="https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg" alt="Avatar" class="profile-avatar-large">
+                <div class="profile-details">
+                    <h2 id="profile-username">Gamer_Pro_CS2</h2>
+                    <p style="font-size: 13px; color: #8f98a0;">Steam ID: 76561198000000000</p>
+                    <div class="trade-url-box">
+                        <input type="text" class="search-input" placeholder="Введите Trade URL для получения обменов..." id="trade-url-input">
+                        <button class="btn-buy" onclick="saveTradeUrl()">Сохранить</button>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="inventory-title">Мой инвентарь (Купленные скины)</h3>
+            <div class="skins-grid" id="inventory-container">
+                <!-- Купленные скины будут появляться здесь -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL POPUP (DEPOSIT) -->
+    <div class="modal-overlay" id="deposit-modal">
+        <div class="modal">
+            <span class="modal-close" onclick="closeDepositModal()">&times;</span>
+            <h3 class="modal-title">Пополнение баланса</h3>
+            <p style="font-size: 13px; margin-bottom: 10px;">Выберите способ оплаты:</p>
+            <div class="payment-methods">
+                <div class="payment-btn selected">Карта РФ</div>
+                <div class="payment-btn">СПБ</div>
+                <div class="payment-btn">Крипта</div>
+            </div>
+            <p style="font-size: 13px; margin-bottom: 5px;">Сумма пополнения (руб):</p>
+            <input type="number" class="search-input" id="deposit-amount" value="1000" style="width: 100%; margin-bottom: 15px;">
+            <button class="btn-buy" style="width: 100%; padding: 10px;" onclick="processDeposit()">Оплатить</button>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div class="toast" id="toast">Уведомление</div>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>© 2026 CS2 Market. Не аффилировано с Valve Corporation.</p>
+        <p style="margin-top: 5px;">Все товарные знаки принадлежат их соответствующим владельцам.</p>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Данные скинов (База данных)
+        const initialSkins = [
+            { id: 1, weapon: "AK-47", name: "Азимов", wear: "Прямо с завода", price: 8500, rarity: "covert", rarityColor: "var(--rarity-covert)", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844fc45U1spzp1f582A2caCcQcA4X2VR8L8fTZ_S1_P-118tYmU0O7zKAF9s67xL35f0vX3dH1D7de0k4aKlaPxaL_TwmpTsJUl2u_H8In0ilC_qRA6a2vwI9fHJBc1YV7S_1a-l7i7gpK6vszNyXMx7iJx7S7fyxK-1B4d_L8gT1uU" },
+            { id: 2, weapon: "AWP", name: "История о драконе", wear: "После полевых", price: 120000, rarity: "covert", rarityColor: "var(--rarity-covert)", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844fc45U1spzp1f582A2caCcQcA4X2VR8L8fTZ_S1_P-118tYmU0O7zKAF9s6-12uS6K_4lP73S2deK0O2wwYTNmve3au3TwT8C7cNw2r_A84iki1Ky-hFqf2imJInEdVHX8gO-wrL31pC87M_MzHY17iE44O7LnkX_197X3i8L" },
+            { id: 3, weapon: "M4A4", name: "Вой", wear: "Немного поношенное", price: 95000, rarity: "covert", rarityColor: "var(--rarity-covert)", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844fc45U1spzp1f582A2caCcQcA4X2VR8L8fTZ_S1_P-118tYmU0O7zKAF9s68t12i1IuX7fS9p4-m_jN3Lq-LxaL_Tw38VvMIn2uzD8In2iAbt-RE_Zzr7LYLAcVZqM1rUr1a5yO3mgZK76pzAzXU17yIn-3f1u3u93M5_Q" },
+            { id: 4, weapon: "USP-S", name: "Убийство подтверждено", wear: "После полевых", price: 4200, rarity: "covert", rarityColor: "var(--rarity-covert)", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844fc45U1spzp1f582A2caCcQcA4X2VR8L8fTZ_S1_P-118tYmU0O7zKAF9s6-3N3lR0v33S21F5N6wL8TrmL73S3-_Sl2oGsNIn3eqA8IigjA6y_EFtZ3el8d6k3f7N_1C9kLjngZK7vcjOzHJj6yIqs3j32X5" },
+            { id: 5, weapon: "Desert Eagle", name: "Пламя", wear: "Прямо с завода", price: 18500, rarity: "covert", rarityColor: "var(--rarity-covert)", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844fc45U1spzp1f582A2caCcQcA4X2VR8L8fTZ_S1_P-118tYmU0O7zKAF9s6281vSjJ3R_0v74cO6wwYTNmve3au-Gw30DsMAisOzH84ij0AblrhFqMm71LILBc1RtYgnQ_lC7kO7s0JW56M3Pn3tl7icgse-B1_fO3S1c" },
+            { id: 6, weapon: "Glock-18", name: "Градиент", wear: "Прямо с завода", price: 32000, rarity: "classified", rarityColor: "var(--rarity-classified)", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844fc45U1spzp1f582A2caCcQcA4X2VR8L8fTZ_S1_P-118tYmU0O7zKAF9s6-106K52a-N31936c-9L8Iio3_xau-2a8u2213MAsSIn3r-2a3o6xL321t7sL7M3c8A33DUpUIn6mO7s93U-4394mU0" },
+            { id: 7, weapon: "AK-47", name: "Неоновая революция", wear: "Немного поношенное", price: 2800, rarity: "classified", rarityColor: "var(--rarity-classified)", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844fc45U1spzp1f582A2caCcQcA4X2VR8L8fTZ_S1_P-118tYmU0O7zKAF9s65f2IuY2fF919P93N6yI8fInO92L2u9yS--mC8b28iN-2lq5m0M1I6O-d0DdUJ7mYxZq_10O_m6Xp2A3u3w-S3-mN2X5" },
+            { id: 8, weapon: "M4A1-S", name: "Огонь чантико", wear: "После полевых", price: 1900, rarity: "classified", rarityColor: "var(--rarity-classified)", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844fc45U1spzp1f582A2caCcQcA4X2VR8L8fTZ_S1_P-118tYmU0O7zKAF9s6-f24u5393043K6c4_r1-L8d_T8au-_29S92212sS1N9yD8Iing3C0e9F-m2s9Xp9r_mK3v38P141y-2C6_1iO2E" }
+        ];
+
+        // Глобальное состояние
+        let balance = 15000;
+        let inventory = [];
+        let displayedSkins = [...initialSkins];
+
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSkins(displayedSkins);
+            updateBalanceUI();
+        });
+
+        // Отрисовка скинов в магазине
+        function renderSkins(skins) {
+            const container = document.getElementById('skins-container');
+            container.innerHTML = '';
+
+            if (skins.length === 0) {
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px;">Скины не найдены</p>';
+                return;
+            }
+
+            skins.forEach(skin => {
+                const card = document.createElement('div');
+                card.className = 'skin-card';
+                card.innerHTML = `
+                    <div class="skin-rarity-bar" style="background-color: ${skin.rarityColor}"></div>
+                    <div class="skin-img-wrap">
+                        <img src="${skin.img}" alt="${skin.name}">
+                    </div>
+                    <div class="skin-info">
+                        <span class="skin-weapon">${skin.weapon}</span>
+                        <div class="skin-name">${skin.name}</div>
+                        <span class="skin-wear">${skin.wear}</span>
+                        <div class="skin-bottom">
+                            <span class="skin-price">${skin.price.toLocaleString()} ₽</span>
+                            <button class="btn-buy" onclick="buySkin(${skin.id})">Купить</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Фильтрация и поиск
+        function filterSkins() {
+            const searchVal = document.getElementById('search-input').value.toLowerCase();
+            const rarityVal = document.getElementById('rarity-filter').value;
+            const sortVal = document.getElementById('sort-filter').value;
+
+            let result = initialSkins.filter(skin => {
+                const matchesSearch = skin.name.toLowerCase().includes(searchVal) || skin.weapon.toLowerCase().includes(searchVal);
+                const matchesRarity = rarityVal === 'all' || skin.rarity === rarityVal;
+                return matchesSearch && matchesRarity;
+            });
+
+            if (sortVal === 'asc') {
+                result.sort((a, b) => a.price - b.price);
+            } else if (sortVal === 'desc') {
+                result.sort((a, b) => b.price - a.price);
+            }
+
+            renderSkins(result);
+        }
+
+        // Покупка скина
+        function buySkin(id) {
+            const skin = initialSkins.find(s => s.id === id);
+            
+            if (balance >= skin.price) {
+                balance -= skin.price;
+                inventory.push(skin);
+                updateBalanceUI();
+                renderInventory();
+                showToast(`Вы успешно купили ${skin.weapon} | ${skin.name}!`);
+            } else {
+                showToast("Недостаточно средств на балансе!", true);
+            }
+        }
+
+        // Отрисовка инвентаря
+        function renderInventory() {
+            const container = document.getElementById('inventory-container');
+            container.innerHTML = '';
+
+            if (inventory.length === 0) {
+                container.innerHTML = '<p style="grid-column: 1/-1; color: #8f98a0;">Ваш инвентарь пуст. Купите скины на маркете!</p>';
+                return;
+            }
+
+            inventory.forEach((skin, index) => {
+                const card = document.createElement('div');
+                card.className = 'skin-card';
+                card.innerHTML = `
+                    <div class="skin-rarity-bar" style="background-color: ${skin.rarityColor}"></div>
+                    <div class="skin-img-wrap">
+                        <img src="${skin.img}" alt="${skin.name}">
+                    </div>
+                    <div class="skin-info">
+                        <span class="skin-weapon">${skin.weapon}</span>
+                        <div class="skin-name">${skin.name}</div>
+                        <span class="skin-wear">${skin.wear}</span>
+                        <div class="skin-bottom">
+                            <button class="btn-buy" style="width:100%; background: var(--border-color);" onclick="withdrawSkin(${index})">Вывести в Steam</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function withdrawSkin(index) {
+            const tradeUrl = document.getElementById('trade-url-input').value;
+            if(!tradeUrl) {
+                showToast("Укажите Trade URL в профиле!", true);
+                return;
+            }
+            showToast("Запрос на обмен отправлен в Steam!");
+            inventory.splice(index, 1);
+            renderInventory();
+        }
+
+        // Обновление баланса
+        function updateBalanceUI() {
+            document.getElementById('user-balance').innerText = `${balance.toLocaleString()} ₽`;
+        }
+
+        // Модальное окно
+        function openDepositModal() {
+            document.getElementById('deposit-modal').style.display = 'flex';
+        }
+
+        function closeDepositModal() {
+            document.getElementById('deposit-modal').style.display = 'none';
+        }
+
+        function processDeposit() {
+            const amount = parseInt(document.getElementById('deposit-amount').value);
+            if (amount && amount > 0) {
+                balance += amount;
+                updateBalanceUI();
+                closeDepositModal();
+                showToast(`Баланс пополнен на ${amount.toLocaleString()} ₽`);
+            }
+        }
+
+        // Навигация (Табы)
+        function switchTab(tab) {
+            document.getElementById('market-tab').style.display = tab === 'market' ? 'block' : 'none';
+            document.getElementById('profile-tab').style.display = tab === 'profile' ? 'block' : 'none';
+            
+            document.getElementById('nav-market').classList.toggle('active', tab === 'market');
+            document.getElementById('nav-profile').classList.toggle('active', tab === 'profile');
+
+            if(tab === 'profile') {
+                renderInventory();
+            }
+        }
+
+        // Сохранение Trade URL
+        function saveTradeUrl() {
+            const url = document.getElementById('trade-url-input').value;
+            if(url.includes('steamcommunity.com/tradeoffer')) {
+                showToast("Trade URL успешно сохранен!");
+            } else {
+                showToast("Введите корректный Trade URL!", true);
+            }
+        }
+
+        // Уведомления (Toast)
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.style.backgroundColor = isError ? '#a31010' : 'var(--btn-green)';
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
