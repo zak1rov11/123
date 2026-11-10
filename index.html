@@ -580,8 +580,8 @@
             }
         }
 
-        // Данные скинов (База данных)
-        const initialSkins = [
+        // Данные скинов (запасные, если загрузка из базы не сработает)
+        let initialSkins = [
             { id: 1, weapon: "AK-47", name: "Азимов", wear: "Прямо с завода", price: 8500, rarity: "covert", rarityColor: "var(--rarity-covert)", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844fc45U1spzp1f582A2caCcQcA4X2VR8L8fTZ_S1_P-118tYmU0O7zKAF9s67xL35f0vX3dH1D7de0k4aKlaPxaL_TwmpTsJUl2u_H8In0ilC_qRA6a2vwI9fHJBc1YV7S_1a-l7i7gpK6vszNyXMx7iJx7S7fyxK-1B4d_L8gT1uU" },
             { id: 2, weapon: "AWP", name: "История о драконе", wear: "После полевых", price: 120000, rarity: "covert", rarityColor: "var(--rarity-covert)", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844fc45U1spzp1f582A2caCcQcA4X2VR8L8fTZ_S1_P-118tYmU0O7zKAF9s6-12uS6K_4lP73S2deK0O2wwYTNmve3au3TwT8C7cNw2r_A84iki1Ky-hFqf2imJInEdVHX8gO-wrL31pC87M_MzHY17iE44O7LnkX_197X3i8L" },
             { id: 3, weapon: "M4A4", name: "Вой", wear: "Немного поношенное", price: 95000, rarity: "covert", rarityColor: "var(--rarity-covert)", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844fc45U1spzp1f582A2caCcQcA4X2VR8L8fTZ_S1_P-118tYmU0O7zKAF9s68t12i1IuX7fS9p4-m_jN3Lq-LxaL_Tw38VvMIn2uzD8In2iAbt-RE_Zzr7LYLAcVZqM1rUr1a5yO3mgZK76pzAzXU17yIn-3f1u3u93M5_Q" },
@@ -597,12 +597,69 @@
         let inventory = [];
         let displayedSkins = [...initialSkins];
 
+        // ===== Загрузка скинов из открытой базы CS2 =====
+        const SKINS_API = "https://bymykel.github.io/CSGO-API/api/ru/skins.json";
+
+        const rarityMap = {
+            ancient:   { key: "covert",     color: "var(--rarity-covert)",     price: [3000, 60000] },
+            legendary: { key: "classified", color: "var(--rarity-classified)", price: [800, 15000] },
+            mythical:  { key: "restricted", color: "var(--rarity-restricted)", price: [150, 3000] }
+        };
+
+        function getRarity(id = "") {
+            if (id.includes("ancient")) return rarityMap.ancient;
+            if (id.includes("legendary")) return rarityMap.legendary;
+            if (id.includes("mythical")) return rarityMap.mythical;
+            return null;
+        }
+
+        // Одинаковое число для одного и того же id (цена не меняется при перезагрузке)
+        function hashId(str) {
+            let h = 0;
+            for (const ch of str) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+            return h;
+        }
+
+        async function loadSkinsFromApi() {
+            try {
+                const res = await fetch(SKINS_API);
+                const data = await res.json();
+
+                const skins = data
+                    .filter(s => s.image && getRarity(s.rarity && s.rarity.id))
+                    .sort((a, b) => hashId(a.id) - hashId(b.id)) // перемешивание
+                    .slice(0, 60)                                // сколько скинов показывать
+                    .map((s, i) => {
+                        const r = getRarity(s.rarity.id);
+                        const [min, max] = r.price;
+                        return {
+                            id: i + 1,
+                            weapon: (s.weapon && s.weapon.name) || "Оружие",
+                            name: (s.pattern && s.pattern.name) || s.name.split("|").pop().trim(),
+                            wear: (s.wears && s.wears[0] && s.wears[0].name) || "Прямо с завода",
+                            price: Math.round((min + (hashId(s.id) % (max - min))) / 10) * 10,
+                            rarity: r.key,
+                            rarityColor: r.color,
+                            img: s.image
+                        };
+                    });
+
+                if (skins.length > 0) {
+                    initialSkins = skins;
+                    filterSkins();
+                }
+            } catch (e) {
+                console.error("Не удалось загрузить скины, показаны запасные:", e);
+            }
+        }
+
         // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', () => {
             renderSkins(displayedSkins);
             updateBalanceUI();
             loadWeather();
-            setInterval(loadWeather, 10 * 60 * 1000); // обновление каждые 10 минут
+            setInterval(loadWeather, 10 * 60 * 1000); // обновление погоды каждые 10 минут
+            loadSkinsFromApi();
         });
 
         // Отрисовка скинов в магазине
