@@ -31,49 +31,6 @@
         }
 
         body {
-            <div id="weather">
-  <h3>Погода в Ташкенте</h3>
-  <p id="temp">Загрузка...</p>
-  <p id="details"></p>
-</div>
-
-<script>
-  const url =
-    "https://api.open-meteo.com/v1/forecast" +
-    "?latitude=41.2995&longitude=69.2401" +
-    "&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code" +
-    "&timezone=Asia%2FTashkent";
-
-  const codes = {
-    0: "Ясно", 1: "Преимущественно ясно", 2: "Переменная облачность", 3: "Пасмурно",
-    45: "Туман", 48: "Изморозь",
-    51: "Лёгкая морось", 53: "Морось", 55: "Сильная морось",
-    61: "Небольшой дождь", 63: "Дождь", 65: "Сильный дождь",
-    71: "Небольшой снег", 73: "Снег", 75: "Сильный снег",
-    80: "Ливень", 95: "Гроза"
-  };
-
-  async function loadWeather() {
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-      const c = data.current;
-
-      document.getElementById("temp").textContent =
-        Math.round(c.temperature_2m) + "°C, " + (codes[c.weather_code] || "—");
-
-      document.getElementById("details").textContent =
-        "Ощущается как " + Math.round(c.apparent_temperature) + "°C · " +
-        "Влажность " + c.relative_humidity_2m + "% · " +
-        "Ветер " + c.wind_speed_10m + " км/ч";
-    } catch (e) {
-      document.getElementById("temp").textContent = "Не удалось загрузить погоду";
-    }
-  }
-
-  loadWeather();
-  setInterval(loadWeather, 10 * 60 * 1000); // обновление каждые 10 минут
-</script>
             background-color: var(--bg-main);
             color: var(--text-main);
             display: flex;
@@ -89,6 +46,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
             position: sticky;
             top: 0;
             z-index: 100;
@@ -444,6 +403,36 @@
             z-index: 2000;
         }
 
+        /* WEATHER */
+        .weather-widget {
+            display: flex;
+            flex-direction: column;
+            font-size: 12px;
+            line-height: 1.4;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 6px 14px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .weather-city {
+            color: var(--accent-blue);
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        .weather-temp {
+            color: var(--text-bright);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .weather-details {
+            color: #8f98a0;
+            font-size: 11px;
+        }
+
         /* FOOTER */
         footer {
             background-color: var(--bg-secondary);
@@ -467,6 +456,14 @@
             <a class="nav-link active" id="nav-market" onclick="switchTab('market')">Маркет</a>
             <a class="nav-link" id="nav-profile" onclick="switchTab('profile')">Мой профиль</a>
         </nav>
+
+        <!-- ПОГОДА В ТАШКЕНТЕ -->
+        <div class="weather-widget" title="Погода в Ташкенте">
+            <span class="weather-city">Ташкент</span>
+            <span class="weather-temp" id="weather-temp">Загрузка...</span>
+            <span class="weather-details" id="weather-details"></span>
+        </div>
+
         <div class="user-panel">
             <div class="balance-box">
                 <span>Баланс:</span>
@@ -552,6 +549,37 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
+        // Погода в Ташкенте (Open-Meteo API)
+        const weatherUrl =
+            "https://api.open-meteo.com/v1/forecast" +
+            "?latitude=41.2995&longitude=69.2401" +
+            "&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code" +
+            "&timezone=Asia%2FTashkent";
+
+        const weatherCodes = {
+            0: "Ясно", 1: "Преимущественно ясно", 2: "Переменная облачность", 3: "Пасмурно",
+            45: "Туман", 48: "Изморозь",
+            51: "Лёгкая морось", 53: "Морось", 55: "Сильная морось",
+            61: "Небольшой дождь", 63: "Дождь", 65: "Сильный дождь",
+            71: "Небольшой снег", 73: "Снег", 75: "Сильный снег",
+            80: "Ливень", 95: "Гроза"
+        };
+
+        async function loadWeather() {
+            const tempEl = document.getElementById('weather-temp');
+            const detailsEl = document.getElementById('weather-details');
+            try {
+                const res = await fetch(weatherUrl);
+                const data = await res.json();
+                const c = data.current;
+
+                tempEl.textContent = Math.round(c.temperature_2m) + "°C, " + (weatherCodes[c.weather_code] || "—");
+                detailsEl.textContent = "Ощущается " + Math.round(c.apparent_temperature) + "°C · Ветер " + c.wind_speed_10m + " км/ч";
+            } catch (e) {
+                tempEl.textContent = "Погода недоступна";
+            }
+        }
+
         // Данные скинов (База данных)
         const initialSkins = [
             { id: 1, weapon: "AK-47", name: "Азимов", wear: "Прямо с завода", price: 8500, rarity: "covert", rarityColor: "var(--rarity-covert)", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844fc45U1spzp1f582A2caCcQcA4X2VR8L8fTZ_S1_P-118tYmU0O7zKAF9s67xL35f0vX3dH1D7de0k4aKlaPxaL_TwmpTsJUl2u_H8In0ilC_qRA6a2vwI9fHJBc1YV7S_1a-l7i7gpK6vszNyXMx7iJx7S7fyxK-1B4d_L8gT1uU" },
@@ -573,6 +601,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             renderSkins(displayedSkins);
             updateBalanceUI();
+            loadWeather();
+            setInterval(loadWeather, 10 * 60 * 1000); // обновление каждые 10 минут
         });
 
         // Отрисовка скинов в магазине
